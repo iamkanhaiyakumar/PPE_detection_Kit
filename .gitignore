@@ -83,6 +83,7 @@ profile_default/
 ipython_config.py
 
 
+#   in version control.
 #   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
 
@@ -139,7 +140,5 @@ cython_debug/
 
 /code
 /yolov3.weights
-/Yolo-Weights
-# /static
-/runs
-/vercel-json
+# /Yolo-Weights
+/
