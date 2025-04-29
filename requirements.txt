@@ -25,6 +25,19 @@ gunicorn
 MarkupSafe
 Werkzeug
 
+
+
+blinker
+click
+colorama
+Flask
+gunicorn
+itsdangerous
+Jinja2
+MarkupSafe
+packaging
+Werkzeug
+
 # cvzone
 # ultralytics
 # hydra-core
