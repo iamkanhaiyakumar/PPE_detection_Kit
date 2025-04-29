@@ -140,6 +140,6 @@ cython_debug/
 /code
 /yolov3.weights
 /Yolo-Weights
-/static
+# /static
 /runs
 /vercel-json
