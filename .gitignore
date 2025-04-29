@@ -142,3 +142,4 @@ cython_debug/
 /Yolo-Weights
 /static
 /runs
+/vercel-json
