@@ -105,7 +105,7 @@
 
 
 import streamlit as st
-import cv2
+# import cv2
 import os
 from werkzeug.utils import secure_filename
 from YOLO_Video import video_detection
