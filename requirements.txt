@@ -26,6 +26,7 @@ MarkupSafe
 Werkzeug
 lib
 opencv-python
+libgl1
 
 
 
