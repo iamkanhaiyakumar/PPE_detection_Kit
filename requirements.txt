@@ -27,6 +27,10 @@ Werkzeug
 lib
 opencv-python
 # libgl1
+streamlit
+opencv-python
+werkzeug
+
 
 
 
