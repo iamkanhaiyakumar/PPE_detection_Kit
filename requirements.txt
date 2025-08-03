@@ -81,3 +81,8 @@ scikit-image
 flask_wtf
 WTForms
 streamlit
+opencv-python-headless
+# opencv-contrib-python-headless
+streamlit
+opencv-python-headless
+numpy
