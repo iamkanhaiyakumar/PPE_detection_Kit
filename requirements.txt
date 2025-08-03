@@ -25,6 +25,8 @@ gunicorn
 MarkupSafe
 Werkzeug
 lib
+opencv-python
+
 
 
 
