@@ -1,180 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Object Detection - YOLOv8</title>
     <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      /* General Reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: Helvetica, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            line-height: 1.6;
-        }
+      body {
+        font-family: Helvetica, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        line-height: 1.6;
+      }
 
-        header {
-            width: 100%;
-            padding: 10px 20px;
-        }
+      header {
+        width: 100%;
+        padding: 10px 20px;
+      }
 
-        header.feature-box.right {
-            background-color: black;
-            color: white;
-        }
+      header.feature-box.right {
+        background-color: black;
+        color: white;
+      }
 
-        header.feature-box.below {
-            height: 750px;
-            background-color: blue; /* Fallback color */
-            background-image: url("../static/images/front.gif"); /* GIF background */
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat; /* Prevent tiling */
-        }
+      header.feature-box.below {
+        height: 750px;
+        background-color: blue; /* Fallback color */
+        background-image: url("../static/images/front.gif"); /* GIF background */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat; /* Prevent tiling */
+      }
 
-        nav ul {
-            list-style: none;
-            display: flex;
-            justify-content: flex-end;
-            padding: 0;
-        }
+      nav ul {
+        list-style: none;
+        display: flex;
+        justify-content: flex-end;
+        padding: 0;
+      }
 
-        nav ul li {
-            margin: 0 10px;
-        }
+      nav ul li {
+        margin: 0 10px;
+      }
 
-        nav ul li a {
-            text-decoration: none;
-            color: white;
-            padding: 10px 20px;
-            background-color: gray;
-            border-radius: 10px;
-            transition: background-color 0.3s;
-        }
+      nav ul li a {
+        text-decoration: none;
+        color: white;
+        padding: 10px 20px;
+        background-color: gray;
+        border-radius: 10px;
+        transition: background-color 0.3s;
+      }
 
-        nav ul li a:hover {
-            background-color: red;
-        }
+      nav ul li a:hover {
+        background-color: red;
+      }
 
-        .details {
-            text-align: center;
-            padding: 20px;
-            background-color: gray;
-            color: black;
-            font-size: 24px;
-            margin: 20px 0;
-        }
+      .details {
+        text-align: center;
+        padding: 20px;
+        background-color: gray;
+        color: black;
+        font-size: 24px;
+        margin: 20px 0;
+      }
 
-        .features {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 20px auto;
-            padding: 20px;
-        }
+      .features {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin: 20px auto;
+        padding: 20px;
+      }
 
-        .features figure {
-            text-align: center;
-            max-width: 400px; /* Increased width for larger images */
-        }
+      .features figure {
+        text-align: center;
+        max-width: 400px; /* Increased width for larger images */
+      }
 
-        .features figure img {
-            width: 100%;
-            border-radius: 10%;
-        }
+      .features figure img {
+        width: 100%;
+        border-radius: 10%;
+      }
 
-        .main {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            margin: 20px;
-            gap: 20px;
-        }
+      .main {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        margin: 20px;
+        gap: 20px;
+      }
 
-        .subpart1 {
-            flex: 1;
-            min-width: 300px;
-            padding: 20px;
-        }
+      .subpart1 {
+        flex: 1;
+        min-width: 300px;
+        padding: 20px;
+      }
 
-        .subpart1 h1, .subpart1 h4 {
-            margin-bottom: 10px;
-            color: #555;
-        }
+      .subpart1 h1,
+      .subpart1 h4 {
+        margin-bottom: 10px;
+        color: #555;
+      }
 
-        .subpart1 p {
-            margin-bottom: 20px;
-        }
+      .subpart1 p {
+        margin-bottom: 20px;
+      }
 
-        .overview-container, .dataset-container {
-            background-color: #f8f9fa;
-            padding: 15px 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
+      .overview-container,
+      .dataset-container {
+        background-color: #f8f9fa;
+        padding: 15px 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
 
-        .overview-container ul, .dataset-container ul {
-            margin-top: 10px;
-            padding-left: 20px;
-        }
+      .overview-container ul,
+      .dataset-container ul {
+        margin-top: 10px;
+        padding-left: 20px;
+      }
 
-        .overview-container ul li, .dataset-container ul li {
-            line-height: 1.8;
-        }
+      .overview-container ul li,
+      .dataset-container ul li {
+        line-height: 1.8;
+      }
 
-        .overview-container strong, .dataset-container strong {
-            color: #333;
-            font-weight: bold;
-        }
+      .overview-container strong,
+      .dataset-container strong {
+        color: #333;
+        font-weight: bold;
+      }
 
-        .overview-container p, .dataset-container p {
-            margin-bottom: 10px;
-            color: #555;
-            line-height: 1.6;
-        }
+      .overview-container p,
+      .dataset-container p {
+        margin-bottom: 10px;
+        color: #555;
+        line-height: 1.6;
+      }
 
-        .subpart2 {
-            flex: 1;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+      .subpart2 {
+        flex: 1;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-        .subpart2 figure img {
-            width: 90%; /* Increased size for better visibility */
-            max-width: 900px;
-            border-radius: 4%;
-        }
+      .subpart2 figure img {
+        width: 90%; /* Increased size for better visibility */
+        max-width: 900px;
+        border-radius: 4%;
+      }
 
-        footer {
-            background-color: black;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            margin-top: 20px;
-        }
+      footer {
+        background-color: black;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        margin-top: 20px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Navigation Section -->
     <header class="feature-box right">
-        <nav>
-            <ul>
-                <li><a href="/home">Home</a></li>
-                <li><a href="/FrontPage">Video/Image</a></li>
-                <li><a href="/webcam">Live Webcam</a></li>
-            </ul>
-        </nav>
+      <nav>
+        <ul>
+          <li><a href="/home">Home</a></li>
+          <li><a href="/FrontPage">Video/Image</a></li>
+          <li><a href="/webcam">Live Webcam</a></li>
+        </ul>
+      </nav>
     </header>
 
     <!-- Banner Section -->
@@ -182,81 +188,90 @@
 
     <!-- Details Section -->
     <section class="details">
-        <h1>Sample Results</h1>
+      <h1>Sample Results</h1>
     </section>
 
     <!-- Features Section -->
     <section class="features">
-        <figure>
-            <img src="../static/images/1.png" alt="YOLOv8 Results 1">
-            <figcaption>YOLOv8 Results 1</figcaption>
-        </figure>
-        <figure>
-            <img src="../static/images/2.png" alt="YOLOv8 Results 2">
-            <figcaption>YOLOv8 Results 2</figcaption>
-        </figure>
-        <figure>
-            <img src="../static/images/3.png" alt="YOLOv8 Results 3">
-            <figcaption>YOLOv8 Results 3</figcaption>
-        </figure>
+      <figure>
+        <img src="../static/images/1.png" alt="YOLOv8 Results 1" />
+        <figcaption>YOLOv8 Results 1</figcaption>
+      </figure>
+      <figure>
+        <img src="../static/images/2.png" alt="YOLOv8 Results 2" />
+        <figcaption>YOLOv8 Results 2</figcaption>
+      </figure>
+      <figure>
+        <img src="../static/images/3.png" alt="YOLOv8 Results 3" />
+        <figcaption>YOLOv8 Results 3</figcaption>
+      </figure>
     </section>
 
     <!-- Main Content Section -->
     <div class="main">
-        <div class="subpart1">
-            <h1>PPE Safety Kit Object Detection</h1>
-            <h4>Overview</h4>
-            <div class="overview-container">
-                <p>
-                    <strong>Objective:</strong> Detect PPE (Personal Protective Equipment) using YOLO (You Only Look Once) object detection algorithm. 
-                    The system identifies items such as:
-                </p>
-                <ul>
-                    <li>Hardhat</li>
-                    <li>Mask</li>
-                    <li>No-Hardhat</li>
-                    <li>No-Mask</li>
-                    <li>No-Safety Vest</li>
-                    <li>Person</li>
-                    <li>Safety Cone</li>
-                    <li>Safety Vest</li>
-                    <li>Machinery</li>
-                    <li>Vehicle</li>
-                </ul>
-                <p>
-                    <strong>Use Case:</strong> Designed for organizations and individuals to ensure workplace safety and reduce hazards effectively.
-                </p>
-            </div>
-
-            <h4>Dataset</h4>
-            <div class="dataset-container">
-                <p>
-                    <strong>Source:</strong> Roboflow's PPE Detection dataset. <br>
-                    <strong>Details:</strong>
-                </p>
-                <ul>
-                    <li>Training Images: 2.6k</li>
-                    <li>Validation Images: 114</li>
-                    <li>Testing Images: 82</li>
-                    <li>Image Dimensions: 640x640</li>
-                </ul>
-                <p>
-                    This curated dataset ensures high accuracy in detecting PPE equipment across varied environments.
-                </p>
-            </div>
+      <div class="subpart1">
+        <h1>PPE Safety Kit Object Detection</h1>
+        <h4>Overview</h4>
+        <div class="overview-container">
+          <p>
+            <strong>Objective:</strong> Detect PPE (Personal Protective
+            Equipment) using YOLO (You Only Look Once) object detection
+            algorithm. The system identifies items such as:
+          </p>
+          <ul>
+            <li>Hardhat</li>
+            <li>Mask</li>
+            <li>No-Hardhat</li>
+            <li>No-Mask</li>
+            <li>No-Safety Vest</li>
+            <li>Person</li>
+            <li>Safety Cone</li>
+            <li>Safety Vest</li>
+            <li>Machinery</li>
+            <li>Vehicle</li>
+          </ul>
+          <p>
+            <strong>Use Case:</strong> Designed for organizations and
+            individuals to ensure workplace safety and reduce hazards
+            effectively.
+          </p>
         </div>
 
-        <div class="subpart2">
-            <figure>
-                <img src="../static/images/10.png" alt="Sample Results">
-                <figcaption>Sample Results</figcaption>
-            </figure>
+        <h4>Dataset</h4>
+        <div class="dataset-container">
+          <p>
+            <strong>Source:</strong> Roboflow's PPE Detection dataset. <br />
+            <strong>Details:</strong>
+          </p>
+          <ul>
+            <li>Training Images: 2.6k</li>
+            <li>Validation Images: 114</li>
+            <li>Testing Images: 82</li>
+            <li>Image Dimensions: 640x640</li>
+          </ul>
+          <p>
+            This curated dataset ensures high accuracy in detecting PPE
+            equipment across varied environments.
+          </p>
         </div>
+      </div>
+
+      <div class="subpart2">
+        <figure>
+          <img src="../static/images/10.png" alt="Sample Results" />
+          <figcaption>Sample Results</figcaption>
+        </figure>
+      </div>
     </div>
 
     <!-- Footer -->
     <footer>
-        &copy; 2024 Object Detection using YOLOv8. All rights reserved.
+      &copy; <span id="year"></span> Object Detection using YOLOv8. All rights
+      reserved.
     </footer>
-</body>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
 </html>

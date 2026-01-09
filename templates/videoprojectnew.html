@@ -1,138 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Object Detection using YOLOv8</title>
     <style>
-        /* General Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      /* General Reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
 
-        header {
-            width: 100%;
-            text-align: center;
-            padding: 20px 10px;
-        }
+      header {
+        width: 100%;
+        text-align: center;
+        padding: 20px 10px;
+      }
 
-        header.top {
-            background-color: black;
-        }
+      header.top {
+        background-color: black;
+      }
 
-        header.second {
-            background-color: blue;
-            margin-top: -10px;
-        }
+      header.second {
+        background-color: blue;
+        margin-top: -10px;
+      }
 
+      header h1 {
+        margin: 0;
+        font-size: 1.8em;
+      }
+
+      section.col-sm {
+        background-color: black;
+        border-radius: 35px;
+        overflow: hidden;
+        width: 90%;
+        max-width: 1000px;
+        margin: 20px auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+      }
+
+      img {
+        width: 100%;
+        max-width: 900px;
+        border-radius: 35px;
+        object-fit: cover;
+      }
+
+      .upload-form {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      .upload-form form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .upload-form input[type="file"] {
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #555;
+        border-radius: 5px;
+        background-color: #222;
+        color: white;
+        cursor: pointer;
+      }
+
+      .upload-form button {
+        margin-top: 10px;
+        padding: 10px 20px;
+        border: none;
+        background-color: green;
+        color: white;
+        font-size: 1em;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .upload-form button:hover {
+        background-color: #005500;
+      }
+
+      @media (max-width: 768px) {
         header h1 {
-            margin: 0;
-            font-size: 1.8em;
-        }
-
-        section.col-sm {
-            background-color: black;
-            border-radius: 35px;
-            overflow: hidden;
-            width: 90%;
-            max-width: 1000px;
-            margin: 20px auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+          font-size: 1.5em;
         }
 
         img {
-            width: 100%;
-            max-width: 900px;
-            border-radius: 35px;
-            object-fit: cover;
+          width: 100%;
+          height: auto;
         }
-
-        .upload-form {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .upload-form form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .upload-form input[type="file"] {
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #555;
-            border-radius: 5px;
-            background-color: #222;
-            color: white;
-            cursor: pointer;
-        }
-
-        .upload-form button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            border: none;
-            background-color: green;
-            color: white;
-            font-size: 1em;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .upload-form button:hover {
-            background-color: #005500;
-        }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.5em;
-            }
-
-            img {
-                width: 100%;
-                height: auto;
-            }
-        }
+      }
     </style>
-</head>
-<body>
-<header class="top">
-    <h1><strong>Object Detection using YOLOv8</strong></h1>
-</header>
-<header class="second">
-    <h1><strong>Output Video</strong></h1>
-</header>
+  </head>
+  <body>
+    <header class="top">
+      <h1><strong>Object Detection using YOLOv8</strong></h1>
+    </header>
+    <header class="second">
+      <h1><strong>Output Video</strong></h1>
+    </header>
 
-<section class="col-sm">
-    <img src="{{ url_for('video') }}" alt="Output Video">
-</section>
+    <section class="col-sm">
+      <img src="{{ url_for('video') }}" alt="Output Video" />
+    </section>
 
-<section class="upload-form">
-    <form method="POST" enctype="multipart/form-data">
+    <section class="upload-form">
+      <form method="POST" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <label for="file-upload">Upload Video:</label>
-        <input type="file" id="file-upload" name="file" class="custom-file-input" accept="video/*" title="Choose a video file to upload" placeholder="Choose file">
+        <input
+          type="file"
+          id="file-upload"
+          name="file"
+          class="custom-file-input"
+          accept="video/*"
+          title="Choose a video file to upload"
+          placeholder="Choose file"
+        />
         <button type="submit">Submit</button>
-    </form>
-</section>
-
-</body>
+      </form>
+    </section>
+  </body>
 </html>
