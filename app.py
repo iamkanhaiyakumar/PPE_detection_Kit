@@ -88,6 +88,11 @@ def webapp():
     #return Response(generate_frames(path_x = session.get('video_path', None),conf_=round(float(session.get('conf_', None))/100,2)),mimetype='multipart/x-mixed-replace; boundary=frame')
     return Response(generate_frames_web(path_x=0), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+# Alert status API for webcam page
+@app.route('/alert_status')
+def get_alert_status():
+    return jsonify({"alert": False})
+
 if __name__ == "__main__":
     app.run(debug=True)
 

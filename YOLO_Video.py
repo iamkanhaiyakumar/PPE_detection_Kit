@@ -1,3 +1,194 @@
+# from ultralytics import YOLO
+# import cv2
+# import math
+# import os
+
+# # -------------------- FACE + ATTENDANCE --------------------
+# from deepface import DeepFace
+# import csv
+# from datetime import datetime
+
+# known_faces_path = "known_faces"
+# attendance_file = "attendance.csv"
+# marked_today = set()
+
+# # -------------------- AUTO CREATE ATTENDANCE FILE --------------------
+# if not os.path.exists(attendance_file):
+#     with open(attendance_file, "w", newline="") as f:
+#         writer = csv.writer(f)
+#         writer.writerow(["Name", "Date", "Time", "Attendance", "PPE_Status"])
+# # ---------------------------------------------------------------------
+
+
+# def mark_attendance(name, ppe_ok):
+
+#     today = datetime.now().strftime("%Y-%m-%d")
+
+#     if (name, today) in marked_today:
+#         return
+
+#     now = datetime.now()
+#     attendance_status = "Present"
+#     ppe_status = "Full PPE" if ppe_ok else "NO PPE"
+
+#     with open(attendance_file, "a", newline="") as f:
+#         writer = csv.writer(f)
+#         writer.writerow([
+#             name,
+#             now.strftime("%Y-%m-%d"),
+#             now.strftime("%H:%M:%S"),
+#             attendance_status,
+#             ppe_status
+#         ])
+
+#     marked_today.add((name, today))
+#     print(f"✅ Attendance marked for {name} | PPE: {ppe_status}")
+
+
+# def video_detection(path_x):
+
+#     print(f"🎥 Input Value: {path_x}, Type: {type(path_x)}")
+
+#     # -------------------- INPUT VALIDATION --------------------
+#     if isinstance(path_x, int):
+#         print("📸 Using webcam input.")
+#     elif isinstance(path_x, str):
+#         if not os.path.isfile(path_x):
+#             raise FileNotFoundError(f"❌ File not found: {path_x}")
+#     else:
+#         raise TypeError("⚠️ Invalid input type. Expected int (webcam) or str (video path).")
+
+#     cap = cv2.VideoCapture(path_x)
+
+#     if not cap.isOpened():
+#         raise ValueError(f"❌ Unable to open video source: {path_x}")
+
+#     print("✅ Video source opened successfully.")
+
+#     # -------------------- LOAD YOLO MODEL --------------------
+#     model = YOLO("YOLO-Weights/ppe.pt")
+
+#     classNames = [
+#         'Hardhat', 'Mask', 'NO-Hardhat', 'NO-Mask',
+#         'NO-Safety Vest', 'Person', 'Safety Cone',
+#         'Safety Vest', 'machinery', 'vehicle'
+#     ]
+
+#     # -------------------- MAIN LOOP --------------------
+#     while True:
+
+#         success, img = cap.read()
+
+#         if not success:
+#             print("🚫 No frame captured. Exiting.")
+#             break
+
+#         results = model(img, stream=True)
+
+#         # PPE tracking flags
+#         hardhat = False
+#         mask = False
+#         vest = False
+
+#         for r in results:
+#             boxes = r.boxes
+
+#             for box in boxes:
+
+#                 x1, y1, x2, y2 = map(int, box.xyxy[0])
+#                 conf = round(float(box.conf[0]), 2)
+#                 class_id = int(box.cls[0])
+#                 class_name = classNames[class_id]
+#                 label = f"{class_name} {conf}"
+
+#                 # Track PPE presence
+#                 if class_name == 'Hardhat':
+#                     hardhat = True
+#                 if class_name == 'Mask':
+#                     mask = True
+#                 if class_name == 'Safety Vest':
+#                     vest = True
+
+#                 # Color logic
+#                 if class_name in ['Mask', 'Hardhat', 'Safety Vest']:
+#                     color = (0, 255, 0)
+#                 elif class_name in ['NO-Hardhat', 'NO-Mask', 'NO-Safety Vest']:
+#                     color = (0, 0, 255)
+#                 elif class_name in ['machinery', 'vehicle']:
+#                     color = (0, 149, 255)
+#                 else:
+#                     color = (85, 45, 255)
+
+#                 if conf > 0.5:
+#                     cv2.rectangle(img, (x1, y1), (x2, y2), color, 3)
+#                     cv2.putText(
+#                         img,
+#                         label,
+#                         (x1, y1 - 10),
+#                         cv2.FONT_HERSHEY_SIMPLEX,
+#                         0.7,
+#                         (255, 255, 255),
+#                         2
+#                     )
+
+#         # Final PPE status
+#         ppe_ok = hardhat and mask and vest
+
+#         # -------------------- FACE + ATTENDANCE --------------------
+#         try:
+#             for filename in os.listdir(known_faces_path):
+
+#                 person_name = os.path.splitext(filename)[0]
+#                 person_image_path = os.path.join(known_faces_path, filename)
+
+#                 result = DeepFace.verify(
+#                     img1_path=img,
+#                     img2_path=person_image_path,
+#                     enforce_detection=False
+#                 )
+
+#                 if result["verified"]:
+
+#                     mark_attendance(person_name, ppe_ok)
+
+#                     status_text = "Full PPE" if ppe_ok else "NO PPE"
+
+#                     cv2.putText(
+#                         img,
+#                         f"{person_name} - {status_text}",
+#                         (20, 40),
+#                         cv2.FONT_HERSHEY_SIMPLEX,
+#                         1,
+#                         (0, 255, 0) if ppe_ok else (0, 0, 255),
+#                         3
+#                     )
+
+#                     break
+
+#         except Exception as e:
+#             print("Face recognition error:", e)
+#         # ----------------------------------------------------------
+
+#         yield img
+
+#     cap.release()
+#     cv2.destroyAllWindows()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from ultralytics import YOLO
 import cv2
 import math
