@@ -7,7 +7,18 @@ import torch
 
 # ─── Shared Model & Config ────────────────────────────────────────────────────
 
-MODEL_PATH = "YOLO-Weights/ppe.pt"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+def get_model_path():
+    candidates = [
+        os.path.join(BASE_DIR, "YOLO-Weights", "ppe.pt"),
+        os.path.join(BASE_DIR, "ppe.pt"),
+        os.path.join(BASE_DIR, "best.pt")
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    return candidates[0]
 
 CLASS_NAMES = [
     'Hardhat', 'Mask', 'NO-Hardhat', 'NO-Mask',
@@ -31,16 +42,17 @@ COLOR_MAP = {
 _model = None
 
 def get_model():
-    """Lazy-load YOLO model (singleton) to avoid re-loading on every request."""
+    """Lazy-load or pre-load YOLO model singleton."""
     global _model
     if _model is None:
-        print("🔄 Loading YOLO model...")
-        _model = YOLO(MODEL_PATH)
-        print("✅ YOLO model loaded.")
+        path = get_model_path()
+        print(f"🔄 Loading YOLO model from: {path}...")
+        _model = YOLO(path)
+        print("✅ YOLO model loaded successfully.")
     return _model
 
 
-def _resize_if_needed(img, max_dim=640):
+def _resize_if_needed(img, max_dim=720):
     """Resize image if max dimension exceeds max_dim to save RAM on Render (512MB limit)."""
     h, w = img.shape[:2]
     if max(h, w) > max_dim:
@@ -98,7 +110,7 @@ def video_detection(path_x):
     Generator that yields annotated frames from a video file.
     path_x: str (file path)
     """
-    print(f"🎥 Input Value: {path_x}")
+    print(f"🎥 Video Detection started for: {path_x}")
 
     if not isinstance(path_x, str) or not os.path.isfile(path_x):
         print(f"❌ Video file not found: {path_x}")
@@ -106,7 +118,7 @@ def video_detection(path_x):
 
     cap = cv2.VideoCapture(path_x)
     if not cap.isOpened():
-        print(f"❌ Unable to open video: {path_x}")
+        print(f"❌ Unable to open video source: {path_x}")
         return
 
     print("✅ Video opened successfully.")
@@ -116,10 +128,9 @@ def video_detection(path_x):
         while True:
             success, img = cap.read()
             if not success:
-                print("🚫 End of video. Loop finished.")
+                print("🚫 End of video stream.")
                 break
 
-            # Scale down large frames for fast processing & to avoid Render OOM
             img = _resize_if_needed(img, max_dim=640)
 
             with torch.inference_mode():
@@ -128,7 +139,7 @@ def video_detection(path_x):
             _draw_detections(img, results)
             yield img
     except Exception as e:
-        print(f"⚠️ Error during video detection: {e}")
+        print(f"⚠️ Error during video stream: {e}")
     finally:
         cap.release()
 
@@ -140,23 +151,23 @@ def image_detection(image_path):
     Run YOLO detection on a single image file.
     Returns: (annotated_img as numpy array, alert: bool)
     """
-    print(f"🖼️ Image Detection: {image_path}")
+    print(f"🖼️ Image Detection started for: {image_path}")
 
     if not os.path.isfile(image_path):
         raise FileNotFoundError(f"❌ Image not found: {image_path}")
 
     img = cv2.imread(image_path)
     if img is None:
-        raise ValueError(f"❌ Could not read image: {image_path}")
+        raise ValueError(f"❌ Could not decode image: {image_path}")
 
-    img = _resize_if_needed(img, max_dim=1024)
+    img = _resize_if_needed(img, max_dim=720)
     model = get_model()
 
     with torch.inference_mode():
         results = model(img, verbose=False, imgsz=640)
 
     alert = _draw_detections(img, results)
-    print(f"✅ Image detection done. Alert: {alert}")
+    print(f"✅ Image detection complete. Alert: {alert}")
     return img, alert
 
 
@@ -180,6 +191,6 @@ def process_single_frame(frame_bytes):
 
     alert = _draw_detections(img, results)
 
-    # Encode back to JPEG (quality 80 for fast network transfer)
+    # Encode back to JPEG
     _, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 80])
     return buffer.tobytes(), alert
