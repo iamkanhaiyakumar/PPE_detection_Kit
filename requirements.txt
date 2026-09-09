@@ -3,7 +3,7 @@ ultralytics
 hydra-core
 matplotlib
 numpy
-opencv-python
+opencv-python-headless
 Pillow
 PyYAML
 requests
@@ -11,14 +11,12 @@ scipy
 torch
 torchvision
 tqdm
-filterpy
 scikit-image
 flask_wtf
 WTForms
 Flask
 gunicorn
 Werkzeug
-streamlit
 blinker
 click
 colorama
@@ -26,4 +24,3 @@ itsdangerous
 Jinja2
 MarkupSafe
 packaging
-lap

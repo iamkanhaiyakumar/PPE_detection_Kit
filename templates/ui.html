@@ -18,11 +18,11 @@
     .nav-links{display:flex;gap:12px;}
     .nav-links a{padding:10px 20px;border-radius:10px;font-size:.9rem;font-weight:600;text-decoration:none;color:#94a3b8;transition:all .3s;border:1px solid transparent;}
     .nav-links a:hover{color:#f1f5f9;background:rgba(255,255,255,0.05);}
-    .nav-links .active{background:linear-gradient(135deg,#6366f1,#06b6d4);color:#fff;border-color:transparent;}
+    .nav-links .active{background:linear-gradient(135deg,#6366f1,#06b6d4);color:#fff;}
 
-    /* Main Content */
-    .main-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px;}
-    .page-header{text-align:center;margin-bottom:32px;}
+    /* Main */
+    .main-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px;gap:24px;}
+    .page-header{text-align:center;}
     .page-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:50px;font-size:.8rem;font-weight:600;
       background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);margin-bottom:16px;}
     .page-badge .pulse{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;}
@@ -36,23 +36,57 @@
       box-shadow:0 0 60px rgba(99,102,241,0.1);}
     .video-toolbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.08);}
     .video-title{display:flex;align-items:center;gap:10px;font-weight:600;}
-    .status-dot{width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px rgba(34,197,94,0.5);animation:pulse 2s infinite;}
-    .video-controls{display:flex;gap:8px;}
+    .status-dot{width:10px;height:10px;border-radius:50%;background:#64748b;transition:background .3s;}
+    .status-dot.live{background:#22c55e;box-shadow:0 0 10px rgba(34,197,94,0.5);animation:pulse 2s infinite;}
+    .ctrl-btns{display:flex;gap:8px;}
     .ctrl-dot{width:14px;height:14px;border-radius:50%;}
-    .video-frame{padding:16px;}
-    .video-frame img{width:100%;border-radius:12px;display:block;}
+    .video-frame{padding:16px;position:relative;}
 
-    /* Footer */
+    /* Canvas/Output display */
+    #outputImg{width:100%;border-radius:12px;display:block;min-height:300px;background:#0f172a;}
+    #outputImg[src=""]{display:none;}
+    .cam-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;
+      min-height:300px;gap:12px;color:#475569;text-align:center;}
+    .cam-placeholder-icon{font-size:3rem;}
+
+    /* Controls */
+    .controls{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+    .btn{padding:12px 28px;border-radius:12px;border:none;font-family:'Inter',sans-serif;
+      font-size:.95rem;font-weight:700;cursor:pointer;transition:all .3s;}
+    .btn-start{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 20px rgba(34,197,94,0.3);}
+    .btn-start:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(34,197,94,0.4);}
+    .btn-stop{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;box-shadow:0 4px 20px rgba(239,68,68,0.3);}
+    .btn-stop:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(239,68,68,0.4);}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none !important;}
+
+    /* Stats bar */
+    .stats-bar{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+    .stat-chip{padding:8px 16px;border-radius:10px;font-size:.8rem;font-weight:600;
+      background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.1);}
+    .stat-chip span{color:#94a3b8;margin-right:4px;}
+
+    /* Alert banner */
+    .alert-banner{width:100%;max-width:960px;padding:12px 20px;border-radius:12px;font-weight:600;
+      text-align:center;font-size:.95rem;display:none;transition:all .3s;}
+    .alert-banner.danger{display:block;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;}
+    .alert-banner.safe{display:block;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#4ade80;}
+
+    /* Info note */
+    .info-note{width:100%;max-width:960px;padding:12px 20px;border-radius:12px;font-size:.85rem;
+      background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);color:#94a3b8;}
+
     .page-footer{text-align:center;padding:24px;color:#64748b;font-size:.85rem;border-top:1px solid rgba(255,255,255,0.08);margin-top:auto;}
 
-    /* Audio alert */
     @media(max-width:768px){
       .nav-links a{padding:8px 14px;font-size:.8rem;}
-      .page-header h1{font-size:1.5rem;}
     }
   </style>
 </head>
 <body>
+
+  <!-- Hidden video for capturing frames (not shown to user) -->
+  <video id="webcamVideo" autoplay playsinline style="display:none;"></video>
+  <canvas id="captureCanvas" style="display:none;"></canvas>
 
   <!-- Navbar -->
   <nav class="navbar">
@@ -62,7 +96,7 @@
     </a>
     <div class="nav-links">
       <a href="{{ url_for('home') }}">Home</a>
-      <a href="{{ url_for('front') }}">Video/Image</a>
+      <a href="{{ url_for('front') }}">Video / Image</a>
       <a href="{{ url_for('webcam') }}" class="active">Live Webcam</a>
     </div>
   </nav>
@@ -70,59 +104,192 @@
   <!-- Main -->
   <div class="main-content">
     <div class="page-header">
-      <div class="page-badge"><span class="pulse"></span> Live Detection Active</div>
+      <div class="page-badge"><span class="pulse"></span> Live Detection</div>
       <h1>Webcam PPE <span class="gradient-text">Detection</span></h1>
-      <p>Real-time safety monitoring using your webcam — powered by YOLOv8</p>
+      <p>Real-time safety monitoring — powered by YOLOv8 &amp; browser webcam</p>
     </div>
 
+    <!-- Alert Banner -->
+    <div class="alert-banner" id="alertBanner"></div>
+
+    <!-- Video Output -->
     <div class="video-wrapper">
       <div class="video-toolbar">
         <div class="video-title">
-          <span class="status-dot"></span>
-          Live Webcam Feed
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Camera Off</span>
         </div>
-        <div class="video-controls">
+        <div class="ctrl-btns">
           <span class="ctrl-dot" style="background:#ef4444;"></span>
           <span class="ctrl-dot" style="background:#fbbf24;"></span>
           <span class="ctrl-dot" style="background:#22c55e;"></span>
         </div>
       </div>
       <div class="video-frame">
-        <img src="{{ url_for('webapp') }}" alt="Live Webcam PPE Detection Output">
+        <div class="cam-placeholder" id="placeholder">
+          <div class="cam-placeholder-icon">📷</div>
+          <div>Click <strong>Start Camera</strong> to begin live PPE detection</div>
+          <div style="font-size:.85rem;color:#64748b;">Browser will request camera permission</div>
+        </div>
+        <img id="outputImg" src="" alt="Live PPE Detection Output">
       </div>
     </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn btn-start" id="startBtn" onclick="startCamera()">▶ Start Camera</button>
+      <button class="btn btn-stop" id="stopBtn" onclick="stopCamera()" disabled>⏹ Stop Camera</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-chip"><span>FPS:</span><strong id="fpsDisplay">—</strong></div>
+      <div class="stat-chip"><span>Latency:</span><strong id="latDisplay">—</strong></div>
+      <div class="stat-chip"><span>Status:</span><strong id="detStatus">Idle</strong></div>
+    </div>
+
+    <!-- Info Note -->
+    <div class="info-note">
+      ℹ️ <strong>How it works:</strong> Your browser accesses the webcam locally, captures frames, and sends them to the server for YOLO detection. This works both locally and on Render cloud.
+    </div>
   </div>
+
+  <!-- Alert Sound -->
+  <audio id="alertSound" src="{{ url_for('static', filename='alert.mp3') }}"></audio>
 
   <!-- Footer -->
   <div class="page-footer">
     &copy; <span id="year"></span> PPE Detection Kit. Developed by <strong>Kanhaiya Kumar</strong>
   </div>
 
-  <!-- Alert Sound -->
-  <audio id="alertSound" src="{{ url_for('static', filename='alert.mp3') }}"></audio>
-
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    const alertSound = document.getElementById('alertSound');
-    let isPlaying = false;
+    const video    = document.getElementById('webcamVideo');
+    const canvas   = document.getElementById('captureCanvas');
+    const outputImg = document.getElementById('outputImg');
+    const placeholder = document.getElementById('placeholder');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const fpsDisplay = document.getElementById('fpsDisplay');
+    const latDisplay = document.getElementById('latDisplay');
+    const detStatus = document.getElementById('detStatus');
+    const alertBanner = document.getElementById('alertBanner');
+    const alertSound  = document.getElementById('alertSound');
 
-    setInterval(function() {
-      fetch('/alert_status')
-        .then(r => r.json())
-        .then(data => {
-          if (data.alert && !isPlaying) {
-            alertSound.loop = true;
-            alertSound.play();
-            isPlaying = true;
+    let stream = null;
+    let detecting = false;
+    let frameCount = 0;
+    let fpsTimer = null;
+    let soundPlaying = false;
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        video.srcObject = stream;
+
+        // Wait for video to be ready
+        await new Promise(resolve => video.onloadedmetadata = resolve);
+        canvas.width  = video.videoWidth  || 640;
+        canvas.height = video.videoHeight || 480;
+
+        statusDot.classList.add('live');
+        statusText.textContent = 'Live Detection Active';
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled  = false;
+        placeholder.style.display = 'none';
+        outputImg.style.display = 'block';
+        detStatus.textContent = 'Running';
+
+        detecting = true;
+        frameLoop();
+
+        frameCount = 0;
+        fpsTimer = setInterval(() => {
+          fpsDisplay.textContent = frameCount + ' fps';
+          frameCount = 0;
+        }, 1000);
+
+      } catch(err) {
+        alert('Camera access denied or not available: ' + err.message);
+      }
+    }
+
+    function stopCamera() {
+      detecting = false;
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      if (fpsTimer) { clearInterval(fpsTimer); fpsTimer = null; }
+
+      statusDot.classList.remove('live');
+      statusText.textContent = 'Camera Off';
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('stopBtn').disabled  = true;
+      placeholder.style.display = 'flex';
+      outputImg.style.display = 'none';
+      outputImg.src = '';
+      fpsDisplay.textContent = '—';
+      latDisplay.textContent = '—';
+      detStatus.textContent = 'Idle';
+      alertBanner.className = 'alert-banner';
+      alertBanner.textContent = '';
+      stopAlert();
+    }
+
+    async function frameLoop() {
+      if (!detecting) return;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(async (blob) => {
+        const fd = new FormData();
+        fd.append('frame', blob, 'frame.jpg');
+
+        const t0 = performance.now();
+        try {
+          const resp = await fetch('/process_frame', { method: 'POST', body: fd });
+          const data = await resp.json();
+          const lat  = Math.round(performance.now() - t0);
+          latDisplay.textContent = lat + ' ms';
+
+          if (data.frame) {
+            outputImg.src = 'data:image/jpeg;base64,' + data.frame;
+            frameCount++;
           }
-          if (!data.alert && isPlaying) {
-            alertSound.pause();
-            alertSound.currentTime = 0;
-            isPlaying = false;
+
+          if (data.alert) {
+            alertBanner.className = 'alert-banner danger';
+            alertBanner.textContent = '🚨 PPE Violation Detected! — Missing safety equipment';
+            playAlert();
+          } else {
+            alertBanner.className = 'alert-banner safe';
+            alertBanner.textContent = '✅ PPE Compliant — All safety equipment detected';
+            stopAlert();
           }
-        }).catch(() => {});
-    }, 1000);
+        } catch(e) {
+          console.error('Detection error:', e);
+        }
+
+        // Next frame
+        if (detecting) requestAnimationFrame(frameLoop);
+      }, 'image/jpeg', 0.8);
+    }
+
+    function playAlert() {
+      if (!soundPlaying) {
+        alertSound.loop = true;
+        alertSound.play().catch(() => {});
+        soundPlaying = true;
+      }
+    }
+
+    function stopAlert() {
+      if (soundPlaying) {
+        alertSound.pause();
+        alertSound.currentTime = 0;
+        soundPlaying = false;
+      }
+    }
   </script>
 </body>
 </html>
