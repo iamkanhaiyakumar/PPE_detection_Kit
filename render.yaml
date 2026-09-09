@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: ppe-detection-kit
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --worker-class gthread --workers 1 --threads 4 --timeout 300

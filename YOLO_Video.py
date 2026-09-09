@@ -1,7 +1,9 @@
+import os
+os.environ["YOLO_CONFIG_DIR"] = "/tmp"
+
 from ultralytics import YOLO
 import cv2
 import math
-import os
 import numpy as np
 import torch
 

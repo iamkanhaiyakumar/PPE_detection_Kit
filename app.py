@@ -1,4 +1,16 @@
 import os
+
+# Set thread limits and writable config directory for Render/Cloud VMs
+os.environ["YOLO_CONFIG_DIR"] = "/tmp"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+import torch
+torch.set_num_threads(1)
+
 import base64
 from flask import (Flask, render_template, Response,
                    jsonify, request, session)
@@ -55,6 +67,13 @@ def generate_frames(path_x=''):
         print(f"⚠️ Stream exception: {e}")
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
+
+@app.route('/health')
+@app.route('/healthz')
+def health():
+    """Health check endpoint for Render monitoring."""
+    return "OK", 200
+
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/home', methods=['GET', 'POST'])
