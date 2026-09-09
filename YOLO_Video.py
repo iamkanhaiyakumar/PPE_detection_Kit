@@ -3,6 +3,7 @@ import cv2
 import math
 import os
 import numpy as np
+import torch
 
 # ─── Shared Model & Config ────────────────────────────────────────────────────
 
@@ -14,7 +15,6 @@ CLASS_NAMES = [
     'Safety Vest', 'machinery', 'vehicle'
 ]
 
-# Color map per class
 COLOR_MAP = {
     'Hardhat': (0, 255, 0),
     'Mask': (0, 255, 0),
@@ -40,11 +40,20 @@ def get_model():
     return _model
 
 
+def _resize_if_needed(img, max_dim=640):
+    """Resize image if max dimension exceeds max_dim to save RAM on Render (512MB limit)."""
+    h, w = img.shape[:2]
+    if max(h, w) > max_dim:
+        scale = max_dim / float(max(h, w))
+        nw, nh = int(w * scale), int(h * scale)
+        return cv2.resize(img, (nw, nh), interpolation=cv2.INTER_AREA)
+    return img
+
+
 def _draw_detections(img, results):
     """Draw prominent bounding boxes + styled label tags on img. Returns alert flag (True if NO-PPE detected)."""
     alert = False
     h, w = img.shape[:2]
-    # Dynamic scaling based on image dimensions
     scale = max(w, h) / 750.0
     thickness = max(2, int(2.5 * scale))
     font_scale = max(0.55, 0.55 * scale)
@@ -89,32 +98,39 @@ def video_detection(path_x):
     Generator that yields annotated frames from a video file.
     path_x: str (file path)
     """
-    print(f"🎥 Input Value: {path_x}, Type: {type(path_x)}")
+    print(f"🎥 Input Value: {path_x}")
 
-    if isinstance(path_x, str):
-        if not os.path.isfile(path_x):
-            raise FileNotFoundError(f"❌ File not found: {path_x}")
-    else:
-        raise TypeError("⚠️ Invalid input. Expected str (video file path).")
+    if not isinstance(path_x, str) or not os.path.isfile(path_x):
+        print(f"❌ Video file not found: {path_x}")
+        return
 
     cap = cv2.VideoCapture(path_x)
     if not cap.isOpened():
-        raise ValueError(f"❌ Unable to open video: {path_x}")
+        print(f"❌ Unable to open video: {path_x}")
+        return
 
     print("✅ Video opened successfully.")
     model = get_model()
 
-    while True:
-        success, img = cap.read()
-        if not success:
-            print("🚫 End of video or no frame. Exiting.")
-            break
+    try:
+        while True:
+            success, img = cap.read()
+            if not success:
+                print("🚫 End of video. Loop finished.")
+                break
 
-        results = model(img, stream=True)
-        _draw_detections(img, results)
-        yield img
+            # Scale down large frames for fast processing & to avoid Render OOM
+            img = _resize_if_needed(img, max_dim=640)
 
-    cap.release()
+            with torch.inference_mode():
+                results = model(img, verbose=False, imgsz=640)
+
+            _draw_detections(img, results)
+            yield img
+    except Exception as e:
+        print(f"⚠️ Error during video detection: {e}")
+    finally:
+        cap.release()
 
 
 # ─── Image Detection ──────────────────────────────────────────────────────────
@@ -133,10 +149,13 @@ def image_detection(image_path):
     if img is None:
         raise ValueError(f"❌ Could not read image: {image_path}")
 
+    img = _resize_if_needed(img, max_dim=1024)
     model = get_model()
-    results = model(img, stream=True)
-    alert = _draw_detections(img, results)
 
+    with torch.inference_mode():
+        results = model(img, verbose=False, imgsz=640)
+
+    alert = _draw_detections(img, results)
     print(f"✅ Image detection done. Alert: {alert}")
     return img, alert
 
@@ -153,10 +172,14 @@ def process_single_frame(frame_bytes):
     if img is None:
         raise ValueError("❌ Could not decode frame bytes.")
 
+    img = _resize_if_needed(img, max_dim=640)
     model = get_model()
-    results = model(img, stream=True)
+
+    with torch.inference_mode():
+        results = model(img, verbose=False, imgsz=640)
+
     alert = _draw_detections(img, results)
 
-    # Encode back to JPEG
-    _, buffer = cv2.imencode('.jpg', img)
+    # Encode back to JPEG (quality 80 for fast network transfer)
+    _, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 80])
     return buffer.tobytes(), alert

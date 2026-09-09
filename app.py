@@ -35,14 +35,15 @@ class UploadFileForm(FlaskForm):
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Run")
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
-
 def generate_frames(path_x=''):
     """Generator for MJPEG video streaming."""
-    for frame in video_detection(path_x):
-        _, buffer = cv2.imencode('.jpg', frame)
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+    try:
+        for frame in video_detection(path_x):
+            _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+    except Exception as e:
+        print(f"⚠️ Stream error: {e}")
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
@@ -100,8 +101,8 @@ def front():
 def video():
     """MJPEG stream for uploaded video."""
     path = session.get('video_path', None)
-    if not path:
-        return "No video uploaded", 400
+    if not path or not os.path.exists(path):
+        return "Video not found or expired. Please upload again.", 404
     return Response(generate_frames(path_x=path),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
