@@ -41,8 +41,15 @@ def get_model():
 
 
 def _draw_detections(img, results):
-    """Draw bounding boxes + labels on img. Returns alert flag (True if NO-PPE detected)."""
+    """Draw prominent bounding boxes + styled label tags on img. Returns alert flag (True if NO-PPE detected)."""
     alert = False
+    h, w = img.shape[:2]
+    # Dynamic scaling based on image dimensions
+    scale = max(w, h) / 750.0
+    thickness = max(2, int(2.5 * scale))
+    font_scale = max(0.55, 0.55 * scale)
+    font_thickness = max(1, int(1.8 * scale))
+
     for r in results:
         for box in r.boxes:
             conf = round(float(box.conf[0]), 2)
@@ -58,9 +65,20 @@ def _draw_detections(img, results):
             if class_name in ('NO-Hardhat', 'NO-Mask', 'NO-Safety Vest'):
                 alert = True
 
-            cv2.rectangle(img, (x1, y1), (x2, y2), color, 3)
-            cv2.putText(img, label, (x1, max(y1 - 10, 10)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+            # Bounding box
+            cv2.rectangle(img, (x1, y1), (x2, y2), color, thickness)
+
+            # Filled label tag background
+            (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_thickness)
+            tag_y1 = max(0, y1 - th - baseline - 8)
+            tag_y2 = y1
+            tag_x2 = min(w, x1 + tw + 10)
+            cv2.rectangle(img, (x1, tag_y1), (tag_x2, tag_y2), color, -1)
+
+            # Label text
+            text_y = tag_y2 - baseline - 3
+            cv2.putText(img, label, (x1 + 5, text_y),
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), font_thickness, cv2.LINE_AA)
     return alert
 
 
